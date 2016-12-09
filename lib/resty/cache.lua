@@ -55,7 +55,8 @@ function _M.run(self)
                 ngx.location.capture(self.cache_persist, { args={ key=key } })
             end
             local l = lock:new(self.cache_lock, {exptime=self.cache_lock_exptime, timeout=self.cache_backend_lock_timeout})
-            if l and l:lock(key) then
+            local t, e = l:lock(key.."--update")
+            if l and t == 0 and e == nil then
                 -- run a backend task, to update new cache, no need to release the lock, will retry after "exptime".
                 ngx.timer.at(0, request, http, fullurl, method, ngx.req.get_headers(), ngx.req.get_body_data(), self.cache_skip_fetch)
             end
